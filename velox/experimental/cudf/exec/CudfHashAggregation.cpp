@@ -2104,9 +2104,7 @@ bool canAggregationBeEvaluatedByCudf(
   return matchTypedCallAgainstSignatures(call, stepIt->second);
 }
 
-bool canBeEvaluatedByCudf(
-    const core::AggregationNode& aggregationNode,
-    core::QueryCtx* queryCtx) {
+bool canBeEvaluatedByCudf(const core::AggregationNode* aggregationNode) {
   const core::PlanNode* sourceNode = aggregationNode.sources().empty()
       ? nullptr
       : aggregationNode.sources()[0].get();

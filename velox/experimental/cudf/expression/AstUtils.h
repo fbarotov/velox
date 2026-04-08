@@ -17,9 +17,11 @@
 
 #include "velox/experimental/cudf/CudfNoDefaults.h"
 
+#include "velox/core/Expressions.h"
 #include "velox/expression/ConstantExpr.h"
 #include "velox/type/Type.h"
 #include "velox/vector/BaseVector.h"
+#include "velox/vector/ConstantVector.h"
 #include "velox/vector/SimpleVector.h"
 #include "velox/vector/VectorTypeUtils.h"
 
@@ -156,13 +158,15 @@ static std::unique_ptr<cudf::scalar> createCudfScalar(
 }
 
 inline std::unique_ptr<cudf::scalar> makeScalarFromConstantExpr(
-    const std::shared_ptr<velox::exec::Expr>& expr,
+    const core::TypedExprPtr& expr,
     std::optional<cudf::type_id> toType = std::nullopt) {
-  auto constExpr = std::dynamic_pointer_cast<velox::exec::ConstantExpr>(expr);
+  const auto* constExpr = expr->asUnchecked<core::ConstantTypedExpr>();
   VELOX_CHECK_NOT_NULL(constExpr);
-  auto constValue = constExpr->value();
+  const auto constValue = constExpr.hasValueVector()
+      ? constExpr.valueVector()
+      : constExpr.toConstantVector(memory::memoryManager()->tracePool());
   return VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH(
-      createCudfScalar, constValue->typeKind(), constValue, toType);
+      createCudfScalar, constExpr->type()->kind(), constValue, toType);
 }
 
 template <TypeKind kind>

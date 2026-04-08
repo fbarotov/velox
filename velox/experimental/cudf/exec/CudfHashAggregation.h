@@ -195,16 +195,13 @@ bool registerAggregationFunctionForStep(
 // Register step-aware builtin aggregation functions
 bool registerStepAwareBuiltinAggregationFunctions(const std::string& prefix);
 
+/// TODO(ps): this function is only used in tests and should be reverted.
 // Step-aware aggregation validation function
 bool canAggregationBeEvaluatedByCudf(
     const core::CallTypedExpr& call,
-    core::AggregationNode::Step step,
-    const std::vector<TypePtr>& rawInputTypes,
-    core::QueryCtx* queryCtx);
+    core::AggregationNode::Step step);
 
-bool canBeEvaluatedByCudf(
-    const core::AggregationNode& aggregationNode,
-    core::QueryCtx* queryCtx);
+bool canBeEvaluatedByCudf(const core::AggregationNode* aggregationNode);
 
 // Utility functions
 core::TypedExprPtr expandFieldReference(
