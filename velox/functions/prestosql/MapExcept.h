@@ -38,17 +38,23 @@ struct MapExceptPrimitiveFunction {
     }
   }
 
-  void call(
+  FOLLY_ALWAYS_INLINE void call(
       out_type<Map<Key, Generic<T1>>>& out,
       const arg_type<Map<Key, Generic<T1>>>& inputMap,
       const arg_type<Array<Key>>& keys) {
     if (!constantSearchKeys_) {
       searchKeys_.clear();
-      initializeSearchKeys(keys);
+      if (!keys.empty() && !inputMap.empty()) {
+        initializeSearchKeys(keys);
+      }
     }
 
+    auto toExclude = searchKeys_.size();
+    out.reserve(inputMap.size());
+
     for (const auto& entry : inputMap) {
-      if (searchKeys_.contains(entry.first)) {
+      if (toExclude > 0 && searchKeys_.contains(entry.first)) {
+        --toExclude;
         continue;
       }
 
@@ -65,6 +71,7 @@ struct MapExceptPrimitiveFunction {
 
  private:
   void initializeSearchKeys(const arg_type<Array<Key>>& keys) {
+    searchKeys_.reserve(keys.size());
     for (const auto& key : keys.skipNulls()) {
       searchKeys_.emplace(key);
     }
@@ -102,19 +109,26 @@ struct MapExceptVarcharFunction {
     }
   }
 
-  void call(
+  FOLLY_ALWAYS_INLINE void call(
       out_type<Map<Varchar, Generic<T1>>>& out,
       const arg_type<Map<Varchar, Generic<T1>>>& inputMap,
       const arg_type<Array<Varchar>>& keys) {
     if (!constantSearchKeys_) {
       searchKeys_.clear();
-      for (const auto& key : keys.skipNulls()) {
-        searchKeys_.emplace(key);
+      if (!keys.empty() && !inputMap.empty()) {
+        searchKeys_.reserve(keys.size());
+        for (const auto& key : keys.skipNulls()) {
+          searchKeys_.emplace(key);
+        }
       }
     }
 
+    auto toExclude = searchKeys_.size();
+    out.reserve(inputMap.size());
+
     for (const auto& entry : inputMap) {
-      if (searchKeys_.contains(entry.first)) {
+      if (toExclude > 0 && searchKeys_.contains(entry.first)) {
+        --toExclude;
         continue;
       }
 
@@ -143,11 +157,8 @@ struct MapExceptFunctionEqualComparator {
 
     auto result = lhs.compare(rhs, kEqualValueAtFlags);
 
-    // If comparison returns indeterminate (null), treat as not equal.
-    // This is consistent with SQL semantics where NULL != NULL.
-    if (!result.has_value()) {
-      return false;
-    }
+    VELOX_USER_CHECK(
+        result.has_value(), "Comparison on null elements is not supported");
 
     return result.value() == 0;
   }
@@ -159,17 +170,23 @@ template <typename TExec>
 struct MapExceptFunction {
   VELOX_DEFINE_FUNCTION_TYPES(TExec);
 
-  void call(
+  FOLLY_ALWAYS_INLINE void call(
       out_type<Map<Generic<T1>, Generic<T2>>>& out,
       const arg_type<Map<Generic<T1>, Generic<T2>>>& inputMap,
       const arg_type<Array<Generic<T1>>>& keys) {
     searchKeys_.clear();
-    for (const auto& key : keys.skipNulls()) {
-      searchKeys_.emplace(key);
+    if (!keys.empty() && !inputMap.empty()) {
+      for (const auto& key : keys.skipNulls()) {
+        searchKeys_.emplace(key);
+      }
     }
 
+    auto toExclude = searchKeys_.size();
+    out.reserve(inputMap.size());
+
     for (const auto& entry : inputMap) {
-      if (searchKeys_.contains(entry.first)) {
+      if (toExclude > 0 && searchKeys_.contains(entry.first)) {
+        --toExclude;
         continue;
       }
 
