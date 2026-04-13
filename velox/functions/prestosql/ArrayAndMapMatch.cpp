@@ -359,4 +359,10 @@ VELOX_DECLARE_VECTOR_FUNCTION_WITH_METADATA(
     exec::VectorFunctionMetadataBuilder().defaultNullBehavior(false).build(),
     std::make_unique<NoValuesMatchFunction>());
 
+VELOX_DECLARE_VECTOR_FUNCTION_WITH_METADATA(
+    udf_map_values_none_match,
+    valuesSignatures(),
+    exec::VectorFunctionMetadataBuilder().defaultNullBehavior(false).build(),
+    std::make_unique<NoValuesMatchFunction>());
+
 } // namespace facebook::velox::functions
