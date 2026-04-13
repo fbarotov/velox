@@ -120,6 +120,13 @@ Map Functions
         SELECT map_values_in_range(MAP(ARRAY[1, 2], ARRAY[null, 50]), 0, 100); -- {1 -> null, 2 -> 50}
         SELECT map_values_in_range(MAP(ARRAY[1, 2, 3], ARRAY[5, 50, 500]), 10, 100); -- {2 -> 50}
 
+.. function:: map_values_any_match(x(K,V), function(V, boolean)) -> boolean
+
+    Returns whether any values of a map match the given predicate. Returns true if one or more values match the predicate; false if none of the values match (a special case is when the map is empty); NULL if the predicate function returns NULL for one or more values and false for all other values. Equivalent to ``any_match(map_values(x), predicate)`` but avoids materializing the intermediate array. ::
+
+        SELECT map_values_any_match(map(array['a', 'b', 'c'], array[1, 2, 3]), x -> x = 1); -- true
+        SELECT map_values_any_match(map(array['a', 'b', 'c'], array[1, 2, 3]), x -> x = 5); -- false
+
 .. function:: map_remove_null_values(map(K,V)) -> map(K,V)
 
     Returns a map by removing all the keys in input map with null values. If input

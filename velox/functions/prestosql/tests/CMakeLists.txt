@@ -101,6 +101,7 @@ add_executable(
   MapKeysAndValuesTest.cpp
   MapKeysByTopNValuesTest.cpp
   MapMatchTest.cpp
+  MapValuesAnyMatchTest.cpp
   MapAppendTest.cpp
   MapUpdateTest.cpp
   MapTest.cpp

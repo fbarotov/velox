@@ -274,6 +274,9 @@ void registerMapFunctions(const std::string& prefix) {
   VELOX_REGISTER_VECTOR_FUNCTION(
       udf_no_values_match, prefix + "no_values_match");
 
+  VELOX_REGISTER_VECTOR_FUNCTION(
+      udf_map_values_any_match, prefix + "map_values_any_match");
+
   registerMapConcatFunction(prefix + "map_concat");
 
   registerFunction<
